@@ -105,7 +105,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: atlas-suite-${{ matrix.os }}-${{ matrix.arch }}
-          path: atlas-suite/dist/*
+          path: |
+            atlas-suite/dist/*.AppImage
+            atlas-suite/dist/*.deb
+            atlas-suite/dist/*.tar.gz
+            atlas-suite/dist/*.dmg
+            atlas-suite/dist/*.zip
+            atlas-suite/dist/*.exe
           if-no-files-found: error
 
   release:
@@ -141,7 +147,7 @@ jobs:
             name="$(basename "$file")"
             (cd "$dir" && sha256sum "$name" > "$name.sha256")
           done
-          find . -type f | sort | head -40
+          find . -type f | sort
 
       - name: Upload to Atlas Suite release
         uses: softprops/action-gh-release@v2
