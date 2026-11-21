@@ -1,0 +1,43 @@
+app-id: com.atlasfinancial.Suite
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: atlas-suite
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --device=dri
+  - --filesystem=xdg-documents
+  - --filesystem=xdg-download
+  - --env=ELECTRON_DISABLE_SANDBOX=1
+
+modules:
+  - name: atlas-suite
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/atlas-suite
+      - cp -a atlas-suite-linux-x64/. /app/lib/atlas-suite/ 2>/dev/null || true
+      - cp -a atlas-suite-linux-arm64/. /app/lib/atlas-suite/ 2>/dev/null || true
+      - install -Dm755 atlas-suite-wrapper /app/bin/atlas-suite
+      - install -Dm644 com.atlasfinancial.Suite.desktop /app/share/applications/com.atlasfinancial.Suite.desktop
+      - install -Dm644 icon.png /app/share/icons/hicolor/256x256/apps/com.atlasfinancial.Suite.png
+    sources:
+      - type: archive
+        url: https://github.com/404henryyynotfound/atlas-developers/releases/download/atlas-suite-v1.0.0/atlas-suite-linux-x64.tar.gz
+        sha256: SHA256_X64
+        only-arches:
+          - x86_64
+      - type: archive
+        url: https://github.com/404henryyynotfound/atlas-developers/releases/download/atlas-suite-v1.0.0/atlas-suite-linux-arm64.tar.gz
+        sha256: SHA256_ARM64
+        only-arches:
+          - aarch64
+      - type: file
+        path: atlas-suite-wrapper
+      - type: file
+        path: com.atlasfinancial.Suite.desktop
+      - type: file
+        path: icon.png

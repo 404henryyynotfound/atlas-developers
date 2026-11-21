@@ -1,0 +1,17 @@
+#!/bin/sh
+# Launch Atlas Suite inside the strict snap.
+set -e
+
+ATLAS_SUITE_HOME="${SNAP_USER_COMMON:-$SNAP_USER_DATA}/atlas-suite"
+export ATLAS_SUITE_HOME
+export ELECTRON_DISABLE_SANDBOX=1
+mkdir -p "$ATLAS_SUITE_HOME"
+
+BASE_LIB="$SNAP/opt/atlas-suite"
+GTK_LIB="$SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET:-aarch64-linux-gnu}"
+if [ -d "$SNAP/usr/lib/x86_64-linux-gnu" ]; then
+  GTK_LIB="$SNAP/usr/lib/x86_64-linux-gnu:$GTK_LIB"
+fi
+export LD_LIBRARY_PATH="$BASE_LIB:$GTK_LIB${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+exec "$BASE_LIB/atlas-suite" --no-sandbox "$@"

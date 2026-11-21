@@ -30,7 +30,7 @@ apps:
       - opengl
       - wayland
       - x11
-      - audio
+      - pulseaudio
       - browser-support
 
   atlas:

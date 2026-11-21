@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Atlas Suite
+Exec=atlas-suite %U
+TryExec=atlas-suite
+Terminal=false
+Type=Application
+Icon=${SNAP}/meta/gui/icon.png
+StartupWMClass=Atlas Suite
+Comment=One GUI for the Atlas Financial app family.
+Categories=Office;Finance;Utility;
+Keywords=atlas;finance;budget;calendar;invoice;developer;

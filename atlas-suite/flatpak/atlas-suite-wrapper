@@ -1,0 +1,12 @@
+#!/bin/sh
+# Flatpak entry point for Atlas Suite.
+set -e
+
+ATLAS_SUITE_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/atlas-suite"
+export ATLAS_SUITE_HOME
+export ELECTRON_DISABLE_SANDBOX=1
+mkdir -p "$ATLAS_SUITE_HOME"
+
+BASE=/app/lib/atlas-suite
+export LD_LIBRARY_PATH="$BASE${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+exec "$BASE/atlas-suite" --no-sandbox "$@"

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Atlas Suite</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">A</span>
+        <div><strong>Atlas Suite</strong><small>One account · six apps</small></div>
+      </div>
+      <nav class="app-nav" id="app-nav" aria-label="Atlas apps"></nav>
+      <div class="sidebar-foot">
+        <button class="side-btn" id="sync-btn" type="button">◈ Atlas Sync</button>
+        <button class="side-btn ghost" id="data-btn" type="button">↧ Data folder</button>
+        <small id="version">Atlas Suite</small>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-title">
+          <span class="topbar-glyph" id="app-glyph">▤</span>
+          <div><h1 id="app-title">Atlas Suite</h1><p id="app-subtitle">Loading apps…</p></div>
+        </div>
+        <div class="topbar-actions">
+          <span class="pill" id="sync-pill">Local-only</span>
+          <a class="pill link" id="calendar-link" href="#" title="Open Atlas Calendar">▦ Calendar</a>
+        </div>
+      </header>
+      <section class="views" id="views" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <dialog id="auth-dialog" class="auth-dialog">
+    <form method="dialog" id="auth-form">
+      <div class="dialog-head">
+        <div><h2>Connect Atlas Sync</h2><p>One sign-in shared by every bundled app.</p></div>
+        <button class="icon-btn" value="cancel" type="submit" aria-label="Close">✕</button>
+      </div>
+      <label>Sync endpoint
+        <input class="input" id="endpoint" type="url" spellcheck="false" autocomplete="off"/>
+      </label>
+      <label>Email
+        <input class="input" id="email" type="email" autocomplete="username" required/>
+      </label>
+      <label>Password
+        <input class="input" id="password" type="password" autocomplete="current-password" minlength="8" required/>
+      </label>
+      <label class="check"><input id="signup" type="checkbox"/> Create a new account</label>
+      <label class="check"><input id="name-wrap-toggle" type="checkbox"/> I’m signing up with a display name</label>
+      <label id="name-field" hidden>Display name
+        <input class="input" id="name" type="text" autocomplete="name"/>
+      </label>
+      <p class="dialog-note">No passwords are stored. Business and developer profiles are created automatically on first sign-in.</p>
+      <p class="error" id="auth-error" hidden></p>
+      <div class="dialog-actions">
+        <button class="btn ghost" value="cancel" type="submit">Cancel</button>
+        <button class="btn primary" id="auth-submit" type="button">Connect</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" hidden></div>
+  <script src="renderer.js"></script>
+</body>
+</html>

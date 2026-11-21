@@ -1,0 +1,277 @@
+name: Build Atlas Suite
+
+on:
+  push:
+    tags:
+      - 'suite-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  REPO: 404henryyynotfound/atlas-developers
+  MONOREPO: 404henryyynotfound/atlas-financial-apps
+
+jobs:
+  build:
+    name: App ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            os: linux
+            arch: x64
+            script: dist:linux-x64
+          - runner: ubuntu-24.04-arm
+            os: linux
+            arch: arm64
+            script: dist:linux-arm64
+          - runner: macos-13
+            os: mac
+            arch: x64
+            script: dist:mac-x64
+          - runner: macos-14
+            os: mac
+            arch: arm64
+            script: dist:mac-arm64
+          - runner: windows-latest
+            os: win
+            arch: x64
+            script: dist:win-x64
+          - runner: windows-latest
+            os: win
+            arch: arm64
+            script: dist:win-arm64
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: false
+    steps:
+      - name: Checkout Atlas Developers
+        uses: actions/checkout@v4
+
+      - name: Checkout public app monorepo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.MONOREPO }}
+          path: atlas-financial-apps
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == suite-v* ]]; then
+            VERSION="${GITHUB_REF_NAME#suite-v}"
+          else
+            VERSION="$(node -p "require('./atlas-suite/package.json').version")"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          (cd atlas-suite && npm version "$VERSION" --no-git-tag-version --allow-same-version)
+
+      - name: Install dependencies
+        working-directory: atlas-suite
+        run: npm ci
+
+      - name: Bundle all Atlas apps
+        working-directory: atlas-suite
+        shell: bash
+        env:
+          ATLAS_MONOREPO: ${{ github.workspace }}/atlas-financial-apps
+        run: npm run bundle:web
+
+      - name: Build installer artifacts
+        working-directory: atlas-suite
+        run: npm run ${{ matrix.script }}
+
+      - name: Normalize artifact names
+        shell: bash
+        working-directory: atlas-suite/dist
+        run: |
+          for f in *; do
+            [ -f "$f" ] || continue
+            case "$f" in
+              atlas-suite-mac-*) mv "$f" "${f/atlas-suite-mac-/atlas-suite-macos-}" ;;
+              atlas-suite-win-*) mv "$f" "${f/atlas-suite-win-/atlas-suite-windows-}" ;;
+            esac
+          done
+          ls -1
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-suite-${{ matrix.os }}-${{ matrix.arch }}
+          path: atlas-suite/dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish Suite release
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == suite-v* ]]; then
+            VERSION="${GITHUB_REF_NAME#suite-v}"
+          else
+            VERSION="$(node -p "require('./atlas-suite/package.json').version")"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create checksums
+        shell: bash
+        run: |
+          cd dist
+          find . -type f ! -name '*.sha256' -print0 | while IFS= read -r -d '' file; do
+            sha256sum "$file" > "$file.sha256"
+          done
+          find . -type f | sort | head -40
+
+      - name: Upload to Atlas Suite release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: suite-v${{ steps.version.outputs.version }}
+          name: Atlas Suite v${{ steps.version.outputs.version }}
+          files: dist/**/*
+          fail_on_unmatched_files: false
+          generate_release_notes: true
+
+  snap:
+    name: Snap ${{ matrix.arch }}
+    needs: release
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == suite-v* ]]; then
+            VERSION="${GITHUB_REF_NAME#suite-v}"
+          else
+            VERSION="$(node -p "require('./atlas-suite/package.json').version")"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          sed -i "s/^version: .*/version: '$VERSION'/" atlas-suite/snapcraft.yaml
+
+      - name: Build snap
+        id: build
+        uses: snapcore/action-build@v1
+        with:
+          path: atlas-suite
+
+      - name: Create checksum
+        shell: bash
+        run: |
+          SNAP="${{ steps.build.outputs.snap }}"
+          (cd "$(dirname "$SNAP")" && sha256sum "$(basename "$SNAP")" > "$(basename "$SNAP").sha256")
+
+      - name: Add snap to Atlas Suite release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: suite-v${{ steps.version.outputs.version }}
+          files: |
+            ${{ steps.build.outputs.snap }}
+            ${{ steps.build.outputs.snap }}.sha256
+          fail_on_unmatched_files: true
+
+      - name: Publish to Snap Store
+        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        shell: bash
+        run: |
+          snapcraft register atlas-suite || true
+          snapcraft upload --release=latest/stable "${{ steps.build.outputs.snap }}"
+
+  flatpak:
+    name: Flatpak bundle
+    needs: release
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == suite-v* ]]; then
+            VERSION="${GITHUB_REF_NAME#suite-v}"
+          else
+            VERSION="$(node -p "require('./atlas-suite/package.json').version")"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install Flatpak tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+
+      - name: Download release tarballs
+        shell: bash
+        run: |
+          mkdir -p /tmp/opencode/atlas-suite-tars
+          gh release download "suite-v${{ steps.version.outputs.version }}" \
+            -R "$REPO" \
+            -p 'atlas-suite-linux-x64.tar.gz' \
+            -p 'atlas-suite-linux-arm64.tar.gz' \
+            --dir /tmp/opencode/atlas-suite-tars
+          ls -lh /tmp/opencode/atlas-suite-tars
+
+      - name: Prepare manifest
+        shell: bash
+        run: |
+          MANIFEST=atlas-suite/flatpak/com.atlasfinancial.Suite.yml
+          SHA_X64="$(sha256sum /tmp/opencode/atlas-suite-tars/atlas-suite-linux-x64.tar.gz | cut -d' ' -f1)"
+          SHA_ARM64="$(sha256sum /tmp/opencode/atlas-suite-tars/atlas-suite-linux-arm64.tar.gz | cut -d' ' -f1)"
+          sed -i "s/atlas-suite-v1.0.0/atlas-suite-v${{ steps.version.outputs.version }}/g" "$MANIFEST"
+          sed -i "s/SHA256_X64/$SHA_X64/" "$MANIFEST"
+          sed -i "s/SHA256_ARM64/$SHA_ARM64/" "$MANIFEST"
+          grep -n -E 'url:|sha256:' "$MANIFEST"
+
+      - name: Build Flatpak bundle
+        shell: bash
+        run: |
+          flatpak-builder --repo=atlas-suite-repo --force-clean atlas-suite-build \
+            atlas-suite/flatpak/com.atlasfinancial.Suite.yml
+          flatpak build-bundle atlas-suite-repo atlas-suite.flatpak com.atlasfinancial.Suite
+          sha256sum atlas-suite.flatpak > atlas-suite.flatpak.sha256
+
+      - name: Add Flatpak bundle to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: suite-v${{ steps.version.outputs.version }}
+          files: |
+            atlas-suite.flatpak
+            atlas-suite.flatpak.sha256
+          fail_on_unmatched_files: true

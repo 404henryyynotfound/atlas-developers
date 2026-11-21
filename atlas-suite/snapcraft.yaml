@@ -1,0 +1,90 @@
+name: atlas-suite
+base: core22
+version: '1.0.0'
+summary: One desktop app for the whole Atlas Financial family
+description: |
+  Atlas Suite combines Meridian Finance, Airo Finance, Tandem Finance, Atlas
+  Business, Atlas Calendar and Atlas Developers into one desktop GUI. Bundled
+  copies of every app run locally, with optional live Atlas Sync sharing one
+  account across the suite. No bank credentials or OAuth are bundled.
+icon: snap/local/desktop/icon.png
+grade: stable
+confinement: strict
+architectures:
+  - build-on: amd64
+    build-for: amd64
+  - build-on: arm64
+    build-for: arm64
+
+apps:
+  atlas-suite:
+    command: bin/atlas-suite
+    desktop: usr/share/applications/atlas-suite.desktop
+    plugs:
+      - desktop
+      - desktop-legacy
+      - home
+      - removable-media
+      - network
+      - network-bind
+      - opengl
+      - wayland
+      - x11
+      - pulseaudio
+      - browser-support
+
+parts:
+  suite:
+    plugin: nil
+    build-packages:
+      - curl
+      - ca-certificates
+    stage-packages:
+      - libgtk-3-0
+      - libnotify4
+      - libnss3
+      - libgbm1
+      - libasound2
+      - libxss1
+      - libxkbcommon0
+      - libxrandr2
+      - libxdamage1
+      - libxfixes3
+      - libxcomposite1
+      - libatk1.0-0
+      - libatk-bridge2.0-0
+      - libcups2
+      - libdrm2
+      - libpango-1.0-0
+      - libcairo2
+      - fonts-liberation
+    override-build: |
+      set -e
+      version="${CRAFT_PROJECT_VERSION:-${SNAPCRAFT_PROJECT_VERSION:-1.0.0}}"
+      case "$CRAFT_TARGET_ARCH" in
+        amd64) asset_arch=x64 ;;
+        arm64) asset_arch=arm64 ;;
+        *) echo "Unsupported target architecture: $CRAFT_TARGET_ARCH" >&2; exit 1 ;;
+      esac
+      asset="atlas-suite-linux-${asset_arch}.tar.gz"
+      base="https://github.com/404henryyynotfound/atlas-developers/releases/download/atlas-suite-v${version}"
+      curl -fsSL "${base}/${asset}" -o "${CRAFT_PART_BUILD}/${asset}"
+      curl -fsSL "${base}/${asset}.sha256" -o "${CRAFT_PART_BUILD}/${asset}.sha256"
+      (cd "$CRAFT_PART_BUILD" && sha256sum -c "${asset}.sha256")
+      mkdir -p "${CRAFT_PART_INSTALL}/opt/atlas-suite"
+      tar -xzf "${CRAFT_PART_BUILD}/${asset}" --strip-components=1 \
+        -C "${CRAFT_PART_INSTALL}/opt/atlas-suite"
+      chmod +x "${CRAFT_PART_INSTALL}/opt/atlas-suite/atlas-suite"
+
+  wrappers:
+    plugin: dump
+    source: snap/local/wrappers
+    organize:
+      atlas-suite: bin/atlas-suite
+
+  desktop-file:
+    plugin: dump
+    source: snap/local/desktop
+    organize:
+      atlas-suite.desktop: usr/share/applications/atlas-suite.desktop
+      icon.png: meta/gui/icon.png

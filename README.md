@@ -11,6 +11,7 @@ in the terminal, in a desktop app, or in a static web dashboard.
 - One normalized JSON data model shared by CLI, GUI and dashboard.
 - Zero runtime dependencies in the CLI and web app.
 - Atlas AI works offline by default; an external LLM is strictly opt-in.
+- **Atlas Suite** bundles every Atlas app into one desktop GUI (Snap + Flatpak).
 
 ## What's in this repository
 
@@ -19,6 +20,7 @@ in the terminal, in a desktop app, or in a static web dashboard.
 | `core/` | Shared data model, atomic JSON store, deterministic insights and AI engine |
 | `cli/` | Zero-dependency `atlas` command line tool |
 | `gui/` | Electron shell that loads the web app and shares `~/.atlas-developers/data.json` |
+| `atlas-suite/` | One GUI bundling Meridian, Airo, Tandem, Business, Calendar and Developers |
 | `web/` | Static no-bundler SPA, deployed to `atlas-developers.surge.sh` |
 | `install.sh` | Curl-installable CLI installer (Linux/macOS, x64/arm64) |
 | `snapcraft.yaml`, `snap/` | Strict Snap packaging for Ubuntu App Center (CLI + GUI) |
@@ -161,6 +163,32 @@ atlas --version
 The snap is built natively for `amd64` and `arm64` on tagged releases.
 Publishing to the Snap Store uses the `SNAPCRAFT_STORE_CREDENTIALS` repository
 secret; without it the build still uploads the `.snap` to the GitHub Release.
+
+## Atlas Suite — every app in one GUI
+
+`atlas-suite/` packages all six Atlas apps (Meridian, Airo, Tandem, Atlas
+Business, Atlas Calendar and Atlas Developers) into one offline-capable Electron
+window. The sidebar switches between locally bundled copies; one Atlas Sync
+sign-in shares the resulting tokens with every app. No passwords are stored.
+
+Ubuntu / App Center:
+
+```bash
+sudo snap install atlas-suite
+```
+
+Flatpak bundle (before Flathub submission):
+
+```bash
+flatpak install --user atlas-suite.flatpak
+flatpak run com.atlasfinancial.Suite
+```
+
+Build artifacts are attached to the `atlas-suite-v*` GitHub Releases. The
+`Build Atlas Suite` workflow bundles the public monorepo's apps, builds native
+Linux/macOS/Windows installers, publishes the snap when
+`SNAPCRAFT_STORE_CREDENTIALS` is available, and produces a single-file Flatpak
+bundle for Flathub submission.
 
 ## Download the GUI
 
@@ -353,7 +381,11 @@ to `gui/web-build/` first.
 6. `.github/workflows/snap.yml` builds native `amd64` and `arm64` snaps, uploads
    them to the GitHub Release and publishes to the Snap Store when
    `SNAPCRAFT_STORE_CREDENTIALS` is configured.
-7. Deploy the static site separately with `npm run web:deploy`.
+7. Tag `suite-v1.0.0` (or run the workflow manually) to build Atlas Suite.
+   `.github/workflows/atlas-suite.yml` bundles the public monorepo, builds all
+   six desktop targets, publishes `atlas-suite` to the Snap Store, and attaches
+   a single-file Flatpak bundle for Flathub.
+8. Deploy the static site separately with `npm run web:deploy`.
 
 ### Build caveats
 
