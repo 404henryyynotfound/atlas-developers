@@ -215,15 +215,23 @@ jobs:
           while IFS= read -r file; do
             cp "$file" dist/gui/
           done < <(find gui/dist -maxdepth 1 -type f -name 'atlas-gui-*' ! -name '*.sha256' ! -name '*.blockmap')
-          # electron-builder calls Linux x64 "amd64" for .deb and macOS "mac";
-          # normalize names to the documented atlas-gui-<os>-<arch>.<ext> form.
+          # electron-builder uses amd64/x86_64/mac/win labels; normalize them to
+          # the documented atlas-gui-<os>-<arch>.<ext> form used by the launcher.
           for file in dist/gui/atlas-gui-linux-amd64.*; do
             [ -e "$file" ] || continue
             mv -f "$file" "${file/-amd64./-x64.}"
           done
+          for file in dist/gui/atlas-gui-linux-x86_64.*; do
+            [ -e "$file" ] || continue
+            mv -f "$file" "${file/-x86_64./-x64.}"
+          done
           for file in dist/gui/atlas-gui-mac-*; do
             [ -e "$file" ] || continue
             mv -f "$file" "${file/-mac-/-macos-}"
+          done
+          for file in dist/gui/atlas-gui-win-*; do
+            [ -e "$file" ] || continue
+            mv -f "$file" "${file/-win-/-windows-}"
           done
           (
             cd dist/gui
