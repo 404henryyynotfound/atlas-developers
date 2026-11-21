@@ -1,0 +1,19 @@
+{
+  "name": "atlas-developers-cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zero-dependency Atlas Developers command line tool.",
+  "bin": {
+    "atlas": "bin/atlas.js"
+  },
+  "main": "src/commands.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node test.js",
+    "atlas": "node bin/atlas.js"
+  },
+  "license": "MIT"
+}

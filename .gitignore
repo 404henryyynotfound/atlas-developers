@@ -1,0 +1,12 @@
+node_modules/
+dist/
+release-assets/
+gui/web-build/
+gui/dist/
+*.log
+.DS_Store
+atlas-developers-export-*.json
+.env
+.env.*
+!.env.example
+coverage/

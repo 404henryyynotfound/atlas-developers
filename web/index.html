@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" data-theme="ink">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas Developers — Tools for the work behind the money.</title>
+  <meta name="description" content="Local-first developer tools for tracking payments, invoices, time, subscriptions and payouts. CLI, GUI, and dashboard by Atlas Financial.">
+  <meta name="theme-color" content="#0b1116">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b1116'/%3E%3Cpath d='M32 10 54 50H10Z' fill='none' stroke='%233ee6ff' stroke-width='5'/%3E%3Ccircle cx='32' cy='38' r='5' fill='%23c6ff5e'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script type="module" src="assets/js/app.js"></script>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <section id="landing" class="landing">
+    <header class="landing-header">
+      <a class="logo" href="#/overview" aria-label="Atlas Developers home">
+        <span class="logo-mark">△</span><span class="logo-text">ATLAS<span>DEVELOPERS</span></span>
+      </a>
+      <nav class="landing-links">
+        <a href="#/downloads">Downloads</a>
+        <a href="#/insights">Atlas AI</a>
+        <a href="https://github.com/404henryyynotfound/atlas-developers" rel="noopener noreferrer">GitHub ↗</a>
+      </nav>
+      <a class="btn btn-ghost" href="#/overview">Open dashboard →</a>
+    </header>
+
+    <main class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="dot"></span> LOCAL-FIRST DEVELOPER TOOLS</div>
+        <h1>Tools for the work<br><span>behind the money.</span></h1>
+        <p>Track payments, invoices, clients, time and subscriptions without handing your business to a dashboard in the cloud. One data model. Three ways to work: terminal, desktop app, and browser.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#/downloads">Get the apps <span>↓</span></a>
+          <a class="btn btn-outline" href="#/overview">Explore dashboard</a>
+        </div>
+        <div class="hero-install">
+          <span class="prompt">$</span>
+          <code>curl -fsSL https://raw.githubusercontent.com/404henryyynotfound/atlas-developers/main/install.sh | bash</code>
+          <button class="btn btn-icon" type="button" data-copy="curl -fsSL https://raw.githubusercontent.com/404henryyynotfound/atlas-developers/main/install.sh | bash" aria-label="Copy install command">⧉</button>
+        </div>
+        <p class="hero-note">No account. No OAuth. No bank or payment processor APIs. Your data stays on your machine.</p>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="terminal">
+          <div class="terminal-bar"><span class="term-dot red"></span><span class="term-dot yellow"></span><span class="term-dot green"></span><span class="term-title">atlas — zsh</span></div>
+          <pre><span class="c-dim">$</span> <span class="c-cyan">atlas init</span>
+<span class="c-lime">✔</span> Atlas initialized
+<span class="c-dim">$</span> <span class="c-cyan">atlas ai insight</span>
+ATLAS AI — LOCAL INSIGHT
+<span class="c-dim">────────────────────────</span>
+<span class="c-lime">$12,480.00</span> received · <span class="c-yellow">$2,100.00</span> outstanding
+<span class="c-cyan">FINDINGS</span>
+  - Top client: Northstar Studio
+  - Monthly burn: <span class="c-lime">$418.00</span>
+<span class="c-cyan">NEXT ACTIONS</span>
+  1. Follow up on 2 overdue invoices
+  2. Audit recurring tools
+<span class="c-dim">deterministic · offline · zero dependencies</span>
+<span class="c-dim">$</span> <span class="cursor">▋</span></pre>
+        </div>
+        <div class="float-chip chip-one">△ LOCAL FIRST</div>
+        <div class="float-chip chip-two">✦ ATLAS AI</div>
+      </div>
+    </main>
+
+    <section class="features">
+      <article><div class="feature-icon">⌘</div><h3>Atlas CLI</h3><p>One zero-dependency binary for every platform. Log income, send invoices, track time, and ask Atlas AI from the terminal.</p><a href="#/downloads">Install from terminal →</a></article>
+      <article><div class="feature-icon">▣</div><h3>Desktop GUI</h3><p>Electron shells for Linux, macOS and Windows in x64 and arm64. The same local data, a calmer interface.</p><a href="#/downloads">Download the app →</a></article>
+      <article><div class="feature-icon">◫</div><h3>Web dashboard</h3><p>A static, no-bundler SPA with cashflow charts, upcoming dates, and a full audit trail of your activity.</p><a href="#/overview">Open dashboard →</a></article>
+      <article><div class="feature-icon">✦</div><h3>AI that explains itself</h3><p>Deterministic local insight by default. Optionally connect your own LLM endpoint — never a hardcoded key.</p><a href="#/insights">See insights →</a></article>
+    </section>
+
+    <footer class="landing-footer">
+      <span>△ Atlas Developers</span>
+      <span>Tools for the work behind the money.</span>
+      <span>A product of Atlas Financial.</span>
+    </footer>
+  </section>
+
+  <div id="app" class="app-shell" hidden>
+    <aside class="sidebar">
+      <a class="logo" href="#/overview"><span class="logo-mark">△</span><span class="logo-text">ATLAS<span>DEVELOPERS</span></span></a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav id="routes" class="routes" aria-label="Main navigation"></nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-status"><span id="sync-status" class="status-dot"></span><span id="sync-label">Local only</span></div>
+        <button class="btn btn-ghost btn-block" type="button" data-nav="settings">⚙ Settings</button>
+        <a class="sidebar-back" href="#/overview">△ Atlas Developers</a>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-left"><span id="route-title">Overview</span><span class="topbar-sub">Tools for the work behind the money.</span></div>
+        <div class="topbar-right">
+          <span id="mode-badge" class="mode-badge">LOCAL</span>
+          <button id="theme-toggle" class="btn btn-icon" type="button" aria-label="Toggle theme">◐</button>
+          <a class="btn btn-outline btn-small" href="#/downloads">↓ Get apps</a>
+        </div>
+      </header>
+      <main id="view" class="view" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

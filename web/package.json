@@ -1,0 +1,15 @@
+{
+  "name": "atlas-developers-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static, no-bundler dashboard for Atlas Developers.",
+  "type": "module",
+  "scripts": {
+    "dev": "node -e \"const h=require('http'),f=require('fs'),p=require('path');h.createServer((q,s)=>{const u=decodeURIComponent(q.url.split('?')[0]);const t=p.join(process.cwd(),u==='/'?'index.html':u);f.readFile(t,(e,d)=>{if(e){s.statusCode=404;s.end('Not found');return;}s.setHeader('content-type',t.endsWith('.js')?'text/javascript':t.endsWith('.css')?'text/css':'text/html');s.end(d);});}).listen(4173,()=>console.log('http://localhost:4173'))\"",
+    "deploy": "surge ./ atlas-developers.surge.sh"
+  },
+  "devDependencies": {
+    "surge": "^0.23.1"
+  },
+  "license": "MIT"
+}

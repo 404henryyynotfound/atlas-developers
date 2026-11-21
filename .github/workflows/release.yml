@@ -1,0 +1,215 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-cli:
+    name: CLI ${{ matrix.platform }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux
+            arch: x64
+          - runner: ubuntu-latest
+            platform: linux
+            arch: arm64
+          - runner: macos-latest
+            platform: macos
+            arch: x64
+          - runner: macos-latest
+            platform: macos
+            arch: arm64
+          - runner: windows-latest
+            platform: windows
+            arch: x64
+          - runner: windows-latest
+            platform: windows
+            arch: arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify source
+        shell: bash
+        run: |
+          bash -n install.sh
+          node --check cli/bin/atlas.js
+          node cli/test.js
+
+      - name: Build CLI archive and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          ASSET="atlas-cli-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz"
+          STAGE="dist/cli/atlas-cli-${{ matrix.platform }}-${{ matrix.arch }}"
+          mkdir -p "$STAGE/bin" "$STAGE/src" dist/cli
+          cp -R core "$STAGE/core"
+          cp cli/bin/atlas.js "$STAGE/bin/atlas.js"
+          cp cli/src/*.js "$STAGE/src/"
+          cp cli/package.json "$STAGE/package.json"
+          cp README.md LICENSE "$STAGE/"
+          chmod +x "$STAGE/bin/atlas.js"
+          tar -czf "dist/cli/${ASSET}" -C dist/cli "$(basename "$STAGE")"
+          (
+            cd dist/cli
+            if command -v sha256sum >/dev/null 2>&1; then
+              sha256sum "$ASSET" > "${ASSET}.sha256"
+            else
+              shasum -a 256 "$ASSET" > "${ASSET}.sha256"
+            fi
+          )
+          printf 'Built %s\n' "$ASSET"
+
+      - name: Upload CLI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.platform }}-${{ matrix.arch }}
+          path: dist/cli/*
+          if-no-files-found: error
+
+  build-gui:
+    name: GUI ${{ matrix.platform }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux
+            builder_os: linux
+            arch: x64
+          - runner: ubuntu-latest
+            platform: linux
+            builder_os: linux
+            arch: arm64
+          - runner: macos-latest
+            platform: macos
+            builder_os: mac
+            arch: x64
+          - runner: macos-latest
+            platform: macos
+            builder_os: mac
+            arch: arm64
+          - runner: windows-latest
+            platform: windows
+            builder_os: win
+            arch: x64
+          - runner: windows-latest
+            platform: windows
+            builder_os: win
+            arch: arm64
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Linux cross toolchain (arm64 only)
+        if: matrix.platform == 'linux' && matrix.arch == 'arm64'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Bundle web app into GUI package
+        shell: bash
+        run: cp -R web gui/web-build
+
+      - name: Install Electron build tools
+        shell: bash
+        working-directory: gui
+        run: npm install --no-audit --no-fund
+
+      - name: Package GUI (unsigned)
+        shell: bash
+        working-directory: gui
+        run: |
+          set -euo pipefail
+          npx electron-builder --${{ matrix.builder_os }} --${{ matrix.arch }} --publish never
+
+      - name: Collect GUI artifacts and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/gui
+          while IFS= read -r file; do
+            cp "$file" dist/gui/
+          done < <(find gui/dist -maxdepth 1 -type f -name 'atlas-gui-*' ! -name '*.sha256' ! -name '*.blockmap')
+          (
+            cd dist/gui
+            for asset in atlas-gui-*; do
+              [ -f "$asset" ] || continue
+              case "$asset" in *.sha256) continue ;; esac
+              if command -v sha256sum >/dev/null 2>&1; then
+                sha256sum "$asset" > "${asset}.sha256"
+              else
+                shasum -a 256 "$asset" > "${asset}.sha256"
+              fi
+            done
+          )
+          ls -1 dist/gui
+
+      - name: Upload GUI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-${{ matrix.platform }}-${{ matrix.arch }}
+          path: dist/gui/*
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-cli, build-gui]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: List release assets
+        shell: bash
+        run: ls -lh release-assets
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          body: |
+            Atlas Developers release artifacts.
+
+            CLI archives include the shared `core/` modules and a zero-dependency
+            `bin/atlas.js` entry point. Install with the curl installer or download
+            the archive for your platform and verify the `.sha256` file.
+
+            GUI builds are **unsigned** in CI because no code-signing certificate
+            is configured. macOS may require right-click → Open (or a Gatekeeper
+            override), and Windows SmartScreen may warn on first run. Signing can
+            be enabled later by adding the standard Apple/Windows secrets to the
+            repository and removing `CSC_IDENTITY_AUTO_DISCOVERY=false`.
+
+            Download names follow `atlas-cli-<os>-<arch>.tar.gz` and
+            `atlas-gui-<os>-<arch>.<ext>` where electron-builder supports the
+            template. Some Linux package formats may include a version suffix;
+            the README documents the mapping.

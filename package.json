@@ -1,0 +1,17 @@
+{
+  "name": "atlas-developers",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Atlas Developers — tools for the work behind the money. A product of Atlas Financial.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node cli/test.js",
+    "check": "bash -n install.sh && bash -n scripts/install.sh && node cli/test.js",
+    "cli": "node cli/bin/atlas.js",
+    "web:dev": "npm --prefix web run dev",
+    "web:deploy": "npm --prefix web run deploy"
+  },
+  "license": "MIT"
+}

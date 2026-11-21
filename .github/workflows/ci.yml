@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: Syntax and CLI tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=0
+          while IFS= read -r file; do
+            node --check "$file"
+            count=$((count + 1))
+          done < <(find . -type d -name node_modules -prune -o -type f -name '*.js' -print)
+          printf 'Checked %d JavaScript files\n' "$count"
+
+      - name: Check installer syntax
+        shell: bash
+        run: |
+          bash -n install.sh
+          bash -n scripts/install.sh
+
+      - name: Run CLI integration tests
+        shell: bash
+        run: node cli/test.js

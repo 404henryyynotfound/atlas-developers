@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas Developers — Desktop shell</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="shell-doc">
+    <div class="mark">△</div>
+    <h1>Atlas Developers desktop shell</h1>
+    <p>Tools for the work behind the money.</p>
+    <p class="note">This page documents the packaged Electron shell. When launched, <code>main.js</code> starts a local loopback server and loads <code>web/index.html</code> (bundled as <code>web-build/</code> in release packages) so the no-bundler ES-module dashboard works without <code>file://</code> restrictions.</p>
+    <dl>
+      <dt>Version</dt><dd id="app-version">unknown</dd>
+      <dt>Platform</dt><dd id="app-platform">unknown</dd>
+      <dt>Data folder</dt><dd id="app-data">~/.atlas-developers</dd>
+      <dt>Deep links</dt><dd><code>atlasdev://overview</code> and other route names</dd>
+    </dl>
+    <button id="open-data" type="button">Open data folder</button>
+  </main>
+</body>
+</html>
