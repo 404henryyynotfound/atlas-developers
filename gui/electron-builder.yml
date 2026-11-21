@@ -10,7 +10,6 @@ files:
   - assets/**/*
   - web-build/**/*
 artifactName: atlas-gui-${os}-${arch}.${ext}
-publish: never
 linux:
   category: Development
   target:

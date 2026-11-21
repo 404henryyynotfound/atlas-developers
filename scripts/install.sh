@@ -101,19 +101,19 @@ SOURCE_DIR="${TMP_DIR}/extract"
 if [ -d "${TMP_DIR}/extract/atlas-cli-${OS}-${ARCH}" ]; then
   SOURCE_DIR="${TMP_DIR}/extract/atlas-cli-${OS}-${ARCH}"
 fi
-[ -f "${SOURCE_DIR}/bin/atlas.js" ] || die "archive is missing bin/atlas.js."
+[ -f "${SOURCE_DIR}/cli/bin/atlas.js" ] || die "archive is missing cli/bin/atlas.js."
 
 TARGET_DIR="${SHARE_DIR}/${OS}-${ARCH}-${LABEL}"
 mkdir -p "$TARGET_DIR"
 cp -R "${SOURCE_DIR}/." "${TARGET_DIR}/"
-chmod +x "${TARGET_DIR}/bin/atlas.js"
+chmod +x "${TARGET_DIR}/cli/bin/atlas.js"
 
 mkdir -p "$INSTALL_DIR"
 LINK_PATH="${INSTALL_DIR}/atlas"
 if [ -L "$LINK_PATH" ] || [ -e "$LINK_PATH" ]; then
   rm -f "$LINK_PATH"
 fi
-ln -s "${TARGET_DIR}/bin/atlas.js" "$LINK_PATH"
+ln -s "${TARGET_DIR}/cli/bin/atlas.js" "$LINK_PATH"
 
 info "installed atlas to ${LINK_PATH}"
 info "data will be stored in ${HOME}/.atlas-developers"

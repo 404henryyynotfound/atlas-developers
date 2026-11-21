@@ -9,12 +9,12 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",
-    "dist:linux:x64": "electron-builder --linux --x64 --publish never",
-    "dist:linux:arm64": "electron-builder --linux --arm64 --publish never",
-    "dist:mac:x64": "electron-builder --mac --x64 --publish never",
-    "dist:mac:arm64": "electron-builder --mac --arm64 --publish never",
-    "dist:win:x64": "electron-builder --win --x64 --publish never",
-    "dist:win:arm64": "electron-builder --win --arm64 --publish never",
+    "dist:linux:x64": "electron-builder --linux --x64",
+    "dist:linux:arm64": "electron-builder --linux --arm64",
+    "dist:mac:x64": "electron-builder --mac --x64",
+    "dist:mac:arm64": "electron-builder --mac --arm64",
+    "dist:win:x64": "electron-builder --win --x64",
+    "dist:win:arm64": "electron-builder --win --arm64",
     "bundle:web": "node -e \"require('fs').cpSync('../web','web-build',{recursive:true})\""
   },
   "devDependencies": {

@@ -73,15 +73,16 @@ source ~/.zshrc
 3. Extract and run:
 
    ```bash
-   tar -xzf atlas-cli-linux-x64.tar.gz
-   cd atlas-cli-linux-x64
+   mkdir atlas-cli-linux-x64
+   tar -xzf atlas-cli-linux-x64.tar.gz -C atlas-cli-linux-x64
+   cd atlas-cli-linux-x64/cli
    ./bin/atlas.js --version
    ```
 
 4. Put `bin/atlas.js` on your PATH (symlink it as `atlas`), or run with Node:
 
    ```bash
-   node /path/to/atlas-cli-linux-x64/bin/atlas.js init
+   node /path/to/atlas-cli-linux-x64/cli/bin/atlas.js init
    ```
 
 Requires **Node.js 20 or newer**. On Windows, use the Windows CLI archive and

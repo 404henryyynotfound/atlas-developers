@@ -20,6 +20,17 @@ function makeOutput(io = {}) {
     ? Boolean(io.isTTY !== undefined ? io.isTTY : process.stdout.isTTY) && !process.env.NO_COLOR
     : Boolean(io.color);
 
+  // Piping into `head` should not produce an unhandled EPIPE stack trace.
+  [stdout, stderr].forEach((stream) => {
+    if (stream && typeof stream.on === 'function') {
+      stream.on('error', (error) => {
+        if (error && error.code === 'EPIPE') {
+          try { stream.destroy(); } catch (_) { /* already closed */ }
+        }
+      });
+    }
+  });
+
   function paint(text, code) {
     return enabled ? `${code}${text}${ANSI.reset}` : String(text);
   }

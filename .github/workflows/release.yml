@@ -55,15 +55,16 @@ jobs:
         run: |
           set -euo pipefail
           ASSET="atlas-cli-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz"
-          STAGE="dist/cli/atlas-cli-${{ matrix.platform }}-${{ matrix.arch }}"
-          mkdir -p "$STAGE/bin" "$STAGE/src" dist/cli
-          cp -R core "$STAGE/core"
-          cp cli/bin/atlas.js "$STAGE/bin/atlas.js"
-          cp cli/src/*.js "$STAGE/src/"
-          cp cli/package.json "$STAGE/package.json"
+          STAGE="dist/cli/app"
+          mkdir -p "$STAGE/core/src" "$STAGE/cli/bin" "$STAGE/cli/src" dist/cli
+          cp -R core/src/. "$STAGE/core/src/"
+          cp core/package.json "$STAGE/core/package.json"
+          cp cli/bin/atlas.js "$STAGE/cli/bin/atlas.js"
+          cp cli/src/*.js "$STAGE/cli/src/"
+          cp cli/package.json "$STAGE/cli/package.json"
           cp README.md LICENSE "$STAGE/"
-          chmod +x "$STAGE/bin/atlas.js"
-          tar -czf "dist/cli/${ASSET}" -C dist/cli "$(basename "$STAGE")"
+          chmod +x "$STAGE/cli/bin/atlas.js"
+          tar -czf "dist/cli/${ASSET}" -C "$STAGE" .
           (
             cd dist/cli
             if command -v sha256sum >/dev/null 2>&1; then
@@ -144,7 +145,7 @@ jobs:
         working-directory: gui
         run: |
           set -euo pipefail
-          npx electron-builder --${{ matrix.builder_os }} --${{ matrix.arch }} --publish never
+          npx electron-builder --${{ matrix.builder_os }} --${{ matrix.arch }}
 
       - name: Collect GUI artifacts and checksums
         shell: bash
