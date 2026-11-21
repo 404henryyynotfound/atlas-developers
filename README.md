@@ -180,6 +180,7 @@ sudo snap install atlas-suite
 Flatpak bundle (before Flathub submission):
 
 ```bash
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user atlas-suite.flatpak
 flatpak run com.atlasfinancial.Suite
 ```
