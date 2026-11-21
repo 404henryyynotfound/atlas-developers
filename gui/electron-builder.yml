@@ -10,48 +10,28 @@ files:
   - assets/**/*
   - web-build/**/*
 artifactName: atlas-gui-${os}-${arch}.${ext}
+# Targets intentionally omit per-target arch lists: each release matrix job
+# passes a single --x64/--arm64 flag, which would otherwise be ignored. The
+# macOS .pkg is built separately by packaging/build-pkg-gui.sh because
+# electron-builder writes all pkg arch variants to one fixed filename and
+# races when multiple arch builds run at once.
 linux:
   category: Development
   maintainer: Atlas Financial <support@atlas-developers.surge.sh>
   target:
-    - target: AppImage
-      arch:
-        - x64
-        - arm64
-    - target: deb
-      arch:
-        - x64
-        - arm64
-    - target: tar.gz
-      arch:
-        - x64
-        - arm64
+    - AppImage
+    - deb
+    - tar.gz
 mac:
   category: public.app-category.developer-tools
   identity: null
   target:
-    - target: dmg
-      arch:
-        - x64
-        - arm64
-    - target: zip
-      arch:
-        - x64
-        - arm64
-    - target: pkg
-      arch:
-        - x64
-        - arm64
+    - dmg
+    - zip
 win:
   target:
-    - target: nsis
-      arch:
-        - x64
-        - arm64
-    - target: zip
-      arch:
-        - x64
-        - arm64
+    - nsis
+    - zip
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true

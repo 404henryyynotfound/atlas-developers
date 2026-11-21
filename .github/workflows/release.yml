@@ -192,6 +192,21 @@ jobs:
           set -euo pipefail
           npx electron-builder --${{ matrix.builder_os }} --${{ matrix.arch }}
 
+      - name: Build macOS GUI sudo package
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          APP_DIR="gui/dist/mac/Atlas Developers.app"
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            APP_DIR="gui/dist/mac-arm64/Atlas Developers.app"
+          fi
+          bash packaging/build-pkg-gui.sh \
+            "$APP_DIR" \
+            "dist/gui/atlas-gui-macos-${{ matrix.arch }}.pkg" \
+            "$VERSION"
+
       - name: Collect GUI artifacts and checksums
         shell: bash
         run: |
@@ -200,10 +215,15 @@ jobs:
           while IFS= read -r file; do
             cp "$file" dist/gui/
           done < <(find gui/dist -maxdepth 1 -type f -name 'atlas-gui-*' ! -name '*.sha256' ! -name '*.blockmap')
-          # electron-builder calls Linux x64 "amd64" for .deb; normalize names.
+          # electron-builder calls Linux x64 "amd64" for .deb and macOS "mac";
+          # normalize names to the documented atlas-gui-<os>-<arch>.<ext> form.
           for file in dist/gui/atlas-gui-linux-amd64.*; do
             [ -e "$file" ] || continue
             mv -f "$file" "${file/-amd64./-x64.}"
+          done
+          for file in dist/gui/atlas-gui-mac-*; do
+            [ -e "$file" ] || continue
+            mv -f "$file" "${file/-mac-/-macos-}"
           done
           (
             cd dist/gui

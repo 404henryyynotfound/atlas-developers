@@ -1,6 +1,6 @@
 {
   "name": "atlas-developers-core",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Shared, zero-dependency data model and insight engine for Atlas Developers.",
   "main": "src/model.js",
   "type": "commonjs",

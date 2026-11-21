@@ -1,6 +1,6 @@
 {
   "name": "atlas-developers-gui",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Launcher for the Atlas Developers desktop GUI on Linux, macOS and Windows (x64/arm64).",
   "bin": {
     "atlas-gui": "bin/atlas-gui.js",
