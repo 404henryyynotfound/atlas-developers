@@ -106,6 +106,7 @@ function createWindow() {
       preload: path.join(ROOT, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      webviewTag: true,
       sandbox: false,
       spellcheck: false,
     },
