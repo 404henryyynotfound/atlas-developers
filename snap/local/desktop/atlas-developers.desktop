@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Atlas Developers
+Exec=atlas-developers %U
+TryExec=atlas-developers
+Terminal=false
+Type=Application
+Icon=${SNAP}/meta/gui/icon.png
+StartupWMClass=Atlas Developers
+Comment=Local-first tools for the work behind the money.
+Categories=Development;Utility;
+Keywords=atlas;cli;invoice;payments;developer;

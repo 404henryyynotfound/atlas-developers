@@ -1,0 +1,9 @@
+#!/bin/sh
+# Atlas Developers CLI inside the strict snap.
+set -e
+
+ATLAS_HOME="${SNAP_USER_COMMON:-$SNAP_USER_DATA}/.atlas-developers"
+export ATLAS_HOME
+mkdir -p "$ATLAS_HOME"
+
+exec "$SNAP/opt/node/bin/node" "$SNAP/opt/atlas-developers/cli/bin/atlas.js" "$@"

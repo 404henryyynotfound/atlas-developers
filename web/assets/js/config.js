@@ -32,6 +32,7 @@ export const PLATFORMS = [
     gui: [
       { label: 'AppImage', file: 'atlas-gui-linux-x64.AppImage' },
       { label: 'DEB', file: 'atlas-gui-linux-x64.deb' },
+      { label: 'Snap', file: 'atlas-developers_1.0.4_amd64.snap' },
       { label: 'tar.gz', file: 'atlas-gui-linux-x64.tar.gz' }
     ]
   },
@@ -41,6 +42,7 @@ export const PLATFORMS = [
     gui: [
       { label: 'AppImage', file: 'atlas-gui-linux-arm64.AppImage' },
       { label: 'DEB', file: 'atlas-gui-linux-arm64.deb' },
+      { label: 'Snap', file: 'atlas-developers_1.0.4_arm64.snap' },
       { label: 'tar.gz', file: 'atlas-gui-linux-arm64.tar.gz' }
     ]
   },

@@ -21,7 +21,8 @@ in the terminal, in a desktop app, or in a static web dashboard.
 | `gui/` | Electron shell that loads the web app and shares `~/.atlas-developers/data.json` |
 | `web/` | Static no-bundler SPA, deployed to `atlas-developers.surge.sh` |
 | `install.sh` | Curl-installable CLI installer (Linux/macOS, x64/arm64) |
-| `.github/workflows/` | CI validation and tagged release builds for 6 targets |
+| `snapcraft.yaml`, `snap/` | Strict Snap packaging for Ubuntu App Center (CLI + GUI) |
+| `.github/workflows/` | CI validation, tagged release builds and Snap builds for amd64/arm64 |
 
 ## Install the CLI
 
@@ -98,6 +99,15 @@ atlas --version
 `atlas-developers-cli` pulls in `atlas-developers-core` automatically and gives
 you the `atlas` command. No build tools or native modules are involved.
 
+| npm package | Purpose | Command |
+| --- | --- | --- |
+| `atlas-developers-core` | Shared model, atomic JSON store, insights and local AI engine | library (auto dependency) |
+| `atlas-developers-cli` | Zero-dependency terminal tool | `atlas` |
+| `atlas-developers-gui` | Downloads, verifies, caches and launches the desktop GUI | `atlas-gui` |
+
+All three are currently published at **1.0.4**. Tagged releases publish them
+automatically using the repository's `NPM_TOKEN` secret.
+
 ### sudo system packages
 
 Tagged releases also publish native installers for the CLI. These are JS-only
@@ -106,7 +116,7 @@ packages that install the `atlas` command system-wide.
 **Linux (DEB, amd64 or arm64):**
 
 ```bash
-VERSION=1.0.2
+VERSION=1.0.4
 ARCH=amd64 # or arm64
 BASE=https://github.com/404henryyynotfound/atlas-developers/releases/download/v${VERSION}
 curl -fsSLO "${BASE}/atlas-developers-cli_${VERSION}_${ARCH}.deb"
@@ -119,7 +129,7 @@ atlas --version
 **macOS (PKG, works on Intel and Apple Silicon):**
 
 ```bash
-VERSION=1.0.2
+VERSION=1.0.4
 BASE=https://github.com/404henryyynotfound/atlas-developers/releases/download/v${VERSION}
 curl -fsSLO "${BASE}/atlas-developers-cli-${VERSION}.pkg"
 sudo installer -pkg "atlas-developers-cli-${VERSION}.pkg" -target /
@@ -130,6 +140,27 @@ The GUI also gets sudo-friendly installers in each release:
 `atlas-gui-linux-<arch>.deb` for Linux and `atlas-gui-macos-<arch>.pkg` for
 macOS. Windows users can use the NSIS installer (right-click → Run as
 administrator) or the ZIP archive.
+
+### Ubuntu / App Center (Snap)
+
+A strict snap bundles the CLI, its Node runtime and the Electron GUI, with data
+stored under the snap's own `SNAP_USER_COMMON/.atlas-developers` directory.
+
+```bash
+# From the Snap Store / Ubuntu App Center, once published:
+sudo snap install atlas-developers
+
+# Or sideload the signed-by-release asset from GitHub:
+ARCH=arm64 # or amd64
+VERSION=1.0.4
+curl -fsSLO "https://github.com/404henryyynotfound/atlas-developers/releases/download/v${VERSION}/atlas-developers_${VERSION}_${ARCH}.snap"
+sudo snap install --dangerous "./atlas-developers_${VERSION}_${ARCH}.snap"
+atlas --version
+```
+
+The snap is built natively for `amd64` and `arm64` on tagged releases.
+Publishing to the Snap Store uses the `SNAPCRAFT_STORE_CREDENTIALS` repository
+secret; without it the build still uploads the `.snap` to the GitHub Release.
 
 ## Download the GUI
 
@@ -241,6 +272,8 @@ sent — never your whole dataset and never your keys in logs.
 - Static ES-module SPA: no bundler, no framework, no runtime dependencies.
 - Routes: overview, payments, invoices, clients, projects, subscriptions, time,
   payouts, goals, insights, downloads and settings.
+- A bottom-right Calendar widget reads derived dates from Atlas Sync, refreshes
+  over `calendar` SSE frames, and links to Atlas Calendar.
 - Dependency-free inline SVG charts.
 - All user-controlled text is HTML-escaped; empty states are explicit.
 
@@ -299,8 +332,10 @@ to `gui/web-build/` first.
 
 ## Release process
 
-1. Update the version in `package.json`, `cli/package.json`, `gui/package.json`,
-   `web/package.json`, `core/package.json` and `core/src/version.js`.
+1. Update the version in the root `package.json`, `cli/package.json`,
+   `gui/package.json`, `web/package.json` and `core/package.json`. The CLI
+   derives its reported version from `core/package.json`, so `core/src/version.js`
+   needs no manual edit.
 2. Commit and push to `main`; CI runs JavaScript syntax checks, `bash -n` on the
    installer, and `node cli/test.js`.
 3. Tag and push:
@@ -310,21 +345,25 @@ to `gui/web-build/` first.
    git push origin v1.0.0
    ```
 
-4. `.github/workflows/release.yml` builds six CLI archives plus SHA-256 files and
-   six GUI builds plus SHA-256 files, then publishes them to the GitHub Release
-   for that tag.
-5. Deploy the static site separately with `npm run web:deploy`.
+4. `.github/workflows/release.yml` builds six CLI archives plus SHA-256 files,
+   six GUI builds plus SHA-256 files, the Linux `.deb` and macOS `.pkg` sudo
+   installers, and publishes them to the GitHub Release for that tag.
+5. `.github/workflows/publish-npm.yml` publishes `atlas-developers-core`,
+   `atlas-developers-cli` and `atlas-developers-gui` to npm using `NPM_TOKEN`.
+6. `.github/workflows/snap.yml` builds native `amd64` and `arm64` snaps, uploads
+   them to the GitHub Release and publishes to the Snap Store when
+   `SNAPCRAFT_STORE_CREDENTIALS` is configured.
+7. Deploy the static site separately with `npm run web:deploy`.
 
 ### Build caveats
 
 - GUI builds are **unsigned**: no Apple Developer or Windows code-signing
   certificate is configured. macOS users may need right-click → Open; Windows
   SmartScreen may warn. CI sets `CSC_IDENTITY_AUTO_DISCOVERY=false` explicitly.
-- Electron builder artifact naming follows `atlas-gui-${os}-${arch}.${ext}`.
-  Some Linux formats (notably `deb` and AppImage) can append a version or
-  revision in the package metadata even when the file name matches; if a future
-  electron-builder version introduces a suffix, the download page links above
-  are the canonical names to keep in sync.
+- The release workflow normalizes electron-builder labels to
+  `atlas-gui-${os}-${arch}.${ext}` (`x86_64`/`amd64` become `x64`, `win` becomes
+  `windows`, and macOS `.pkg` files are built separately). The download page
+  links above are the canonical names to keep in sync.
 - Linux arm64 GUI cross-builds from `ubuntu-latest` may require the
   `gcc-aarch64-linux-gnu` toolchain for native modules. The workflow installs it.
  macOS signing/notarization is not performed.

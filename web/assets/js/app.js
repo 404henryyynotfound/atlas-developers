@@ -11,6 +11,7 @@ import { api } from './api.js';
 import { ai } from './ai.js';
 import * as charts from './charts.js';
 import { mountDownloads } from './download.js';
+import { initCalendarWidget } from './calendar-widget.js';
 
 let data = store.get();
 const state = {
@@ -852,3 +853,9 @@ if (window.atlasDesktop && typeof window.atlasDesktop.onDeepLink === 'function')
 }
 
 render();
+
+/* Calendar widget uses the configured sync endpoint. The web app has no dedicated
+   Atlas Calendar token helper yet, so it stays in the sign-in state for now. */
+const getEndpoint = () => String(store.get().settings.syncEndpoint || RUNTIME.syncEndpoint || '').trim();
+const getToken = () => String(store.get().settings.cloudToken || '').trim();
+initCalendarWidget({ app: 'developer', getEndpoint, getToken });

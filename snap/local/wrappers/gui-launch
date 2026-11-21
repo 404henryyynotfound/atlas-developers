@@ -1,0 +1,19 @@
+#!/bin/sh
+# Launch the bundled Electron GUI in a strict snap.
+set -e
+
+ATLAS_HOME="${SNAP_USER_COMMON:-$SNAP_USER_DATA}/.atlas-developers"
+export ATLAS_HOME
+export ELECTRON_DISABLE_SANDBOX=1
+mkdir -p "$ATLAS_HOME"
+
+# Electron's bundled Chromium needs its own libraries first; staged GTK/GL
+# libraries follow so the desktop theme and OpenGL are available.
+BASE_LIB="$SNAP/opt/atlas-developers"
+GTK_LIB="$SNAP/usr/lib/${SNAPCRAFT_ARCH_TRIPLET:-aarch64-linux-gnu}"
+if [ -d "$SNAP/usr/lib/x86_64-linux-gnu" ]; then
+  GTK_LIB="$SNAP/usr/lib/x86_64-linux-gnu:$GTK_LIB"
+fi
+export LD_LIBRARY_PATH="$BASE_LIB:$GTK_LIB${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+exec "$BASE_LIB/atlas-developers-gui" --no-sandbox "$@"
