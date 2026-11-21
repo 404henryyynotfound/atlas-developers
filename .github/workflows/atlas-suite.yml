@@ -137,7 +137,9 @@ jobs:
         run: |
           cd dist
           find . -type f ! -name '*.sha256' -print0 | while IFS= read -r -d '' file; do
-            sha256sum "$file" > "$file.sha256"
+            dir="$(dirname "$file")"
+            name="$(basename "$file")"
+            (cd "$dir" && sha256sum "$name" > "$name.sha256")
           done
           find . -type f | sort | head -40
 
