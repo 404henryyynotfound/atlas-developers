@@ -14,7 +14,7 @@
     "bundle:web": "node scripts/bundle-apps.mjs",
     "start": "npm run bundle:web && electron .",
     "dist:linux-x64": "npm run bundle:web && electron-builder --linux --x64",
-    "dist:linux-arm64": "npm run bundle:web && electron-builder --linux --arm64",
+    "dist:linux-arm64": "npm run bundle:web && electron-builder --linux --arm64 -c electron-builder.arm64.yml",
     "dist:mac-x64": "npm run bundle:web && electron-builder --mac --x64",
     "dist:mac-arm64": "npm run bundle:web && electron-builder --mac --arm64",
     "dist:win-x64": "npm run bundle:web && electron-builder --win --x64",

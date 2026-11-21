@@ -1,0 +1,19 @@
+appId: com.atlasfinancial.suite
+productName: Atlas Suite
+executableName: atlas-suite
+copyright: Copyright © 2026 Atlas Financial
+directories:
+  output: dist
+  buildResources: assets
+files:
+  - main.js
+  - preload.js
+  - assets/**/*
+  - web-build/**/*
+artifactName: atlas-suite-${os}-${arch}.${ext}
+linux:
+  category: Office
+  maintainer: Atlas Financial <support@atlas-financial.surge.sh>
+  target:
+    - deb
+    - tar.gz
