@@ -88,6 +88,49 @@ source ~/.zshrc
 Requires **Node.js 20 or newer**. On Windows, use the Windows CLI archive and
 `atlas.cmd` (or `node bin/atlas.js`).
 
+### npm package
+
+```bash
+npm install -g atlas-developers-cli
+atlas --version
+```
+
+`atlas-developers-cli` pulls in `atlas-developers-core` automatically and gives
+you the `atlas` command. No build tools or native modules are involved.
+
+### sudo system packages
+
+Tagged releases also publish native installers for the CLI. These are JS-only
+packages that install the `atlas` command system-wide.
+
+**Linux (DEB, amd64 or arm64):**
+
+```bash
+VERSION=1.0.2
+ARCH=amd64 # or arm64
+BASE=https://github.com/404henryyynotfound/atlas-developers/releases/download/v${VERSION}
+curl -fsSLO "${BASE}/atlas-developers-cli_${VERSION}_${ARCH}.deb"
+curl -fsSLO "${BASE}/atlas-developers-cli_${VERSION}_${ARCH}.deb.sha256"
+sha256sum -c "atlas-developers-cli_${VERSION}_${ARCH}.deb.sha256"
+sudo apt install "./atlas-developers-cli_${VERSION}_${ARCH}.deb"
+atlas --version
+```
+
+**macOS (PKG, works on Intel and Apple Silicon):**
+
+```bash
+VERSION=1.0.2
+BASE=https://github.com/404henryyynotfound/atlas-developers/releases/download/v${VERSION}
+curl -fsSLO "${BASE}/atlas-developers-cli-${VERSION}.pkg"
+sudo installer -pkg "atlas-developers-cli-${VERSION}.pkg" -target /
+atlas --version
+```
+
+The GUI also gets sudo-friendly installers in each release:
+`atlas-gui-linux-<arch>.deb` for Linux and `atlas-gui-macos-<arch>.pkg` for
+macOS. Windows users can use the NSIS installer (right-click → Run as
+administrator) or the ZIP archive.
+
 ## Download the GUI
 
 All links point to the public GitHub Releases "latest" assets. Each GUI build
@@ -97,10 +140,19 @@ has a matching `.sha256` file (append `.sha256` to the asset URL).
 | --- | --- | --- | --- |
 | Linux | x64 | [AppImage](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-linux-x64.AppImage) · [DEB](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-linux-x64.deb) · [tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-linux-x64.tar.gz) | [atlas-cli-linux-x64.tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-cli-linux-x64.tar.gz) |
 | Linux | arm64 | [AppImage](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-linux-arm64.AppImage) · [DEB](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-linux-arm64.deb) · [tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-linux-arm64.tar.gz) | [atlas-cli-linux-arm64.tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-cli-linux-arm64.tar.gz) |
-| macOS | x64 (Intel) | [DMG](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-x64.dmg) · [ZIP](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-x64.zip) | [atlas-cli-macos-x64.tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-cli-macos-x64.tar.gz) |
-| macOS | arm64 (Apple Silicon) | [DMG](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-arm64.dmg) · [ZIP](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-arm64.zip) | [atlas-cli-macos-arm64.tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-cli-macos-arm64.tar.gz) |
+| macOS | x64 (Intel) | [DMG](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-x64.dmg) · [PKG](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-x64.pkg) · [ZIP](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-x64.zip) | [atlas-cli-macos-x64.tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-cli-macos-x64.tar.gz) |
+| macOS | arm64 (Apple Silicon) | [DMG](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-arm64.dmg) · [PKG](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-arm64.pkg) · [ZIP](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-macos-arm64.zip) | [atlas-cli-macos-arm64.tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-cli-macos-arm64.tar.gz) |
 | Windows | x64 | [EXE](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-windows-x64.exe) · [ZIP](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-windows-x64.zip) | [atlas-cli-windows-x64.tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-cli-windows-x64.tar.gz) |
 | Windows | arm64 | [EXE](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-windows-arm64.exe) · [ZIP](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-gui-windows-arm64.zip) | [atlas-cli-windows-arm64.tar.gz](https://github.com/404henryyynotfound/atlas-developers/releases/latest/download/atlas-cli-windows-arm64.tar.gz) |
+
+Prefer npm for the desktop app? The GUI launcher downloads and verifies the
+correct release artifact for you:
+
+```bash
+npm install -g atlas-developers-gui
+atlas-gui               # download, verify, cache and launch
+atlas-gui --dry-run     # show the planned artifact without launching
+```
 
 The dashboard also has a built-in [downloads page](https://atlas-developers.surge.sh/#/downloads)
 that detects your OS/architecture and highlights the right assets.

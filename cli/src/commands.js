@@ -2,11 +2,26 @@
 
 const fs = require('fs');
 const path = require('path');
-const store = require('../../core/src/store');
-const model = require('../../core/src/model');
-const insights = require('../../core/src/insights');
-const ai = require('../../core/src/ai');
-const { VERSION } = require('../../core/src/version');
+
+// In the repo, core/ sits next to cli/. In the npm package, core is installed
+// as the atlas-developers-core dependency. Prefer the package, then fall back
+// to the source checkout so `node cli/test.js` keeps working without npm install.
+function loadCore(name, fallback) {
+  try {
+    return require(`atlas-developers-core/src/${name}`);
+  } catch (error) {
+    const missingPackage = error && error.code === 'MODULE_NOT_FOUND'
+      && String(error.message).includes("Cannot find module 'atlas-developers-core");
+    if (missingPackage) return require(fallback);
+    throw error;
+  }
+}
+
+const store = loadCore('store', '../../core/src/store');
+const model = loadCore('model', '../../core/src/model');
+const insights = loadCore('insights', '../../core/src/insights');
+const ai = loadCore('ai', '../../core/src/ai');
+const { VERSION } = loadCore('version', '../../core/src/version');
 const { makeOutput } = require('./output');
 
 function parseArgs(args = []) {

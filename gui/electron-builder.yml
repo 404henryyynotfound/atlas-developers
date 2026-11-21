@@ -12,6 +12,7 @@ files:
 artifactName: atlas-gui-${os}-${arch}.${ext}
 linux:
   category: Development
+  maintainer: Atlas Financial <support@atlas-developers.surge.sh>
   target:
     - target: AppImage
       arch:
@@ -27,12 +28,17 @@ linux:
         - arm64
 mac:
   category: public.app-category.developer-tools
+  identity: null
   target:
     - target: dmg
       arch:
         - x64
         - arm64
     - target: zip
+      arch:
+        - x64
+        - arm64
+    - target: pkg
       arch:
         - x64
         - arm64

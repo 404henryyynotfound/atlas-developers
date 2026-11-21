@@ -10,6 +10,9 @@
     "test": "node cli/test.js",
     "check": "bash -n install.sh && bash -n scripts/install.sh && node cli/test.js",
     "cli": "node cli/bin/atlas.js",
+    "pack:npm": "mkdir -p dist/npm && npm pack ./core --pack-destination dist/npm && npm pack ./cli --pack-destination dist/npm && npm pack ./npm/gui --pack-destination dist/npm",
+    "pack:deb": "bash packaging/build-deb-cli.sh amd64 dist/packages && bash packaging/build-deb-cli.sh arm64 dist/packages",
+    "publish:npm": "npm publish ./core --access public && npm publish ./cli --access public && npm publish ./npm/gui --access public",
     "web:dev": "npm --prefix web run dev",
     "web:deploy": "npm --prefix web run deploy"
   },

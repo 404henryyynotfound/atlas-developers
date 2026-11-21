@@ -38,6 +38,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Align versions with tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          for dir in core cli gui npm/gui; do
+            npm --prefix "$dir" version "$VERSION" --no-git-tag-version --allow-same-version
+          done
+
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -74,6 +84,31 @@ jobs:
             fi
           )
           printf 'Built %s\n' "$ASSET"
+
+      - name: Build sudo-installable CLI package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/cli
+          if [ "${{ matrix.platform }}" = "linux" ]; then
+            DEB_ARCH="${{ matrix.arch }}"
+            [ "$DEB_ARCH" = "x64" ] && DEB_ARCH="amd64"
+            bash packaging/build-deb-cli.sh "$DEB_ARCH" dist/cli
+          elif [ "${{ matrix.platform }}" = "macos" ]; then
+            bash packaging/build-pkg-cli.sh dist/cli
+          fi
+          (
+            cd dist/cli
+            for asset in atlas-developers-cli_*.deb atlas-developers-cli-*.pkg; do
+              [ -f "$asset" ] || continue
+              if command -v sha256sum >/dev/null 2>&1; then
+                sha256sum "$asset" > "${asset}.sha256"
+              else
+                shasum -a 256 "$asset" > "${asset}.sha256"
+              fi
+            done
+          )
+          ls -1 dist/cli
 
       - name: Upload CLI artifacts
         uses: actions/upload-artifact@v4
@@ -119,6 +154,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Align versions with tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          for dir in core cli gui npm/gui; do
+            npm --prefix "$dir" version "$VERSION" --no-git-tag-version --allow-same-version
+          done
+
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -155,6 +200,11 @@ jobs:
           while IFS= read -r file; do
             cp "$file" dist/gui/
           done < <(find gui/dist -maxdepth 1 -type f -name 'atlas-gui-*' ! -name '*.sha256' ! -name '*.blockmap')
+          # electron-builder calls Linux x64 "amd64" for .deb; normalize names.
+          for file in dist/gui/atlas-gui-linux-amd64.*; do
+            [ -e "$file" ] || continue
+            mv -f "$file" "${file/-amd64./-x64.}"
+          done
           (
             cd dist/gui
             for asset in atlas-gui-*; do
@@ -201,8 +251,11 @@ jobs:
             Atlas Developers release artifacts.
 
             CLI archives include the shared `core/` modules and a zero-dependency
-            `bin/atlas.js` entry point. Install with the curl installer or download
-            the archive for your platform and verify the `.sha256` file.
+            `bin/atlas.js` entry point. Install with the curl installer, npm
+            (`npm install -g atlas-developers-cli atlas-developers-gui`), or a
+            sudo package (`atlas-developers-cli_<version>_<arch>.deb` on Linux,
+            `atlas-developers-cli-<version>.pkg` on macOS). Every asset has a
+            `.sha256` file.
 
             GUI builds are **unsigned** in CI because no code-signing certificate
             is configured. macOS may require right-click → Open (or a Gatekeeper

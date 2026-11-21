@@ -4,7 +4,11 @@
   "description": "Atlas Developers desktop shell for the local-first dashboard.",
   "main": "main.js",
   "private": true,
-  "author": "Atlas Developers",
+  "author": {
+    "name": "Atlas Financial",
+    "email": "support@atlas-developers.surge.sh"
+  },
+  "homepage": "https://atlas-developers.surge.sh",
   "license": "MIT",
   "scripts": {
     "start": "electron .",

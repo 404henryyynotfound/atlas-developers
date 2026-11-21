@@ -1,0 +1,70 @@
+name: Publish npm packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish core, CLI and GUI launcher
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Check npm token
+        id: token
+        shell: bash
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "${NPM_TOKEN:-}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::NPM_TOKEN secret is not set; npm publishing is skipped."
+          fi
+
+      - name: Verify packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check cli/bin/atlas.js
+          node --check cli/src/commands.js
+          node --check npm/gui/bin/atlas-gui.js
+          node cli/test.js
+          npm pack ./core --dry-run
+          npm pack ./cli --dry-run
+          npm pack ./npm/gui --dry-run
+
+      - name: Align package versions with tag
+        if: steps.token.outputs.available == 'true' && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          for dir in core cli npm/gui; do
+            npm --prefix "$dir" version "$VERSION" --no-git-tag-version --allow-same-version
+          done
+          node -p "'Publishing version ' + require('./core/package.json').version"
+
+      - name: Publish to npm
+        if: steps.token.outputs.available == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm publish ./core --access public
+          npm publish ./cli --access public
+          npm publish ./npm/gui --access public

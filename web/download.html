@@ -23,8 +23,15 @@
     <main style="padding:46px 0">
       <div class="eyebrow"><span class="dot"></span> DOWNLOADS</div>
       <h1 style="font-size:clamp(32px,4vw,52px);margin:0 0 10px">Tools for every desk.</h1>
-      <p style="color:var(--muted);max-width:620px">GUI apps and CLI archives for Linux, macOS and Windows in x64 and arm64. Every download has a published SHA-256 checksum. No account, no telemetry.</p>
+      <p style="color:var(--muted);max-width:620px">GUI apps, sudo installers and CLI archives for Linux, macOS and Windows in x64 and arm64. Every download has a published SHA-256 checksum. No account, no telemetry.</p>
       <div id="download-host" class="card" style="margin-top:28px"><p class="hint">Detecting your platform…</p></div>
+      <div class="card" style="margin-top:18px">
+        <h3>Prefer a package manager?</h3>
+        <pre style="color:var(--lime);white-space:pre-wrap;line-height:1.8">npm install -g atlas-developers-cli atlas-developers-gui
+atlas --version
+atlas-gui</pre>
+        <p class="card-note">npm packages publish from the tagged release workflow. On Linux use <code>sudo apt install ./atlas-developers-cli_VERSION_amd64.deb</code>; on macOS use <code>sudo installer -pkg atlas-developers-cli-VERSION.pkg -target /</code>.</p>
+      </div>
     </main>
     <footer class="landing-footer"><span>△ Atlas Developers</span><span>Tools for the work behind the money.</span><span>A product of Atlas Financial.</span></footer>
   </div>

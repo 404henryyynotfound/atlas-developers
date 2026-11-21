@@ -1,0 +1,36 @@
+{
+  "name": "atlas-developers-gui",
+  "version": "1.0.0",
+  "description": "Launcher for the Atlas Developers desktop GUI on Linux, macOS and Windows (x64/arm64).",
+  "bin": {
+    "atlas-gui": "bin/atlas-gui.js",
+    "atlas-developers": "bin/atlas-gui.js"
+  },
+  "main": "bin/atlas-gui.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node bin/atlas-gui.js --dry-run"
+  },
+  "keywords": [
+    "atlas",
+    "atlas-developers",
+    "gui",
+    "electron",
+    "desktop"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/404henryyynotfound/atlas-developers.git"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
