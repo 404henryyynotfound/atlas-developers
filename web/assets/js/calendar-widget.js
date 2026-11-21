@@ -253,10 +253,15 @@ function formatDate(value) {
   }
 }
 
+function eventStart(event) {
+  const row = event && typeof event === 'object' ? event : {};
+  return clean(row.startAt || row.start);
+}
+
 function sortEvents(events) {
   return events.slice().sort((a, b) => {
-    const left = new Date(a && a.startAt).getTime();
-    const right = new Date(b && b.startAt).getTime();
+    const left = new Date(eventStart(a)).getTime();
+    const right = new Date(eventStart(b)).getTime();
     if (Number.isNaN(left) && Number.isNaN(right)) return 0;
     if (Number.isNaN(left)) return 1;
     if (Number.isNaN(right)) return -1;
@@ -267,7 +272,7 @@ function sortEvents(events) {
 function renderEvent(item, fallbackApp) {
   const source = item && typeof item === 'object' ? item : {};
   const row = makeEl('li', 'atlas-cal-widget-event');
-  const rawStart = clean(source.startAt);
+  const rawStart = eventStart(source);
   const date = makeEl('time', 'atlas-cal-widget-date', rawStart ? formatDate(rawStart) : '—');
   if (rawStart && !Number.isNaN(new Date(rawStart).getTime())) {
     date.dateTime = new Date(rawStart).toISOString();
