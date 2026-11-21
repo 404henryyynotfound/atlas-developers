@@ -1,6 +1,6 @@
 {
   "name": "atlas-developers-cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Zero-dependency Atlas Developers command line tool.",
   "bin": {
     "atlas": "bin/atlas.js"
