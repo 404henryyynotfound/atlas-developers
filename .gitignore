@@ -10,3 +10,4 @@ atlas-developers-export-*.json
 .env.*
 !.env.example
 coverage/
+pi-apps/*.zip
