@@ -29,11 +29,11 @@ jobs:
             os: linux
             arch: arm64
             script: dist:linux-arm64
-          - runner: macos-13
+          - runner: macos-15-intel
             os: mac
             arch: x64
             script: dist:mac-x64
-          - runner: macos-14
+          - runner: macos-15
             os: mac
             arch: arm64
             script: dist:mac-arm64
@@ -47,6 +47,7 @@ jobs:
             script: dist:win-arm64
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: false
+      ATLAS_MONOREPO: ${{ github.workspace }}/atlas-financial-apps
     steps:
       - name: Checkout Atlas Developers
         uses: actions/checkout@v4
@@ -81,8 +82,6 @@ jobs:
       - name: Bundle all Atlas apps
         working-directory: atlas-suite
         shell: bash
-        env:
-          ATLAS_MONOREPO: ${{ github.workspace }}/atlas-financial-apps
         run: npm run bundle:web
 
       - name: Build installer artifacts
