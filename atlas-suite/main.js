@@ -9,9 +9,11 @@ const path = require('path');
 
 const ROOT = __dirname;
 const WEB_ROOT = path.join(ROOT, 'web-build');
+const DEFAULT_DATA_DIR = app.getPath('userData');
 const DATA_DIR = process.env.ATLAS_SUITE_HOME
   ? path.resolve(process.env.ATLAS_SUITE_HOME)
-  : path.join(app.getPath('userData'), 'Atlas Suite');
+  : DEFAULT_DATA_DIR;
+app.setPath('userData', DATA_DIR);
 
 const APPS = [
   { id: 'meridian', name: 'Meridian Finance', short: 'Meridian', glyph: '▤', route: '#/app/overview', color: '#5f8cff' },
@@ -69,7 +71,12 @@ function startServer() {
 
       fs.stat(full, (err, stats) => {
         if (err || !stats.isFile()) {
-          // SPAs use hash routes, but unknown files still get the shell.
+          // Hash routes never reach the server; only extensionless routes fall
+          // back to the shell. Missing modules must stay 404s so errors surface.
+          if (path.extname(full)) {
+            res.writeHead(404).end('Not found');
+            return;
+          }
           const shellFile = path.join(WEB_ROOT, 'index.html');
           fs.readFile(shellFile, (shellErr, data) => {
             if (shellErr) { res.writeHead(404).end('Not found'); return; }
