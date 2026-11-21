@@ -71,10 +71,14 @@
       pill.textContent = `Synced · ${session.user.email}`;
       pill.classList.add('live');
       if (button) button.textContent = '◈ Switch account';
+      const disconnect = $('disconnect-btn');
+      if (disconnect) disconnect.hidden = false;
     } else {
       pill.textContent = 'Local-only';
       pill.classList.remove('live');
       if (button) button.textContent = '◈ Atlas Sync';
+      const disconnect = $('disconnect-btn');
+      if (disconnect) disconnect.hidden = true;
     }
   }
 
@@ -104,13 +108,18 @@
       webview.setAttribute('partition', 'persist:atlas-suite');
       webview.setAttribute('allowpopups', '');
       webview.setAttribute('webpreferences', 'contextIsolation=true,nodeIntegration=false');
-      webview.addEventListener('did-finish-load', () => {
-        if (session) applySessionTo(app.id, webview, session);
+
+      const view = { wrap, webview, loaded: false, seeded: false };
+      webview.addEventListener('did-finish-load', async () => {
+        if (!session || view.seeded) return;
+        view.seeded = true;
+        await applySessionTo(app.id, view, session);
+        webview.reload();
       });
 
       wrap.appendChild(webview);
       host.appendChild(wrap);
-      views.set(app.id, { wrap, webview, loaded: false });
+      views.set(app.id, view);
     });
   }
 
@@ -137,8 +146,11 @@
     if (!view.loaded) {
       view.webview.setAttribute('src', `/apps/${app.id}/index.html${app.route || ''}`);
       view.loaded = true;
-    } else if (session) {
-      applySessionTo(app.id, view.webview, session);
+    } else if (session && !view.seeded) {
+      applySessionTo(app.id, view, session).then(() => {
+        view.seeded = true;
+        view.webview.reload();
+      });
     }
   }
 
@@ -189,20 +201,30 @@
   }
 
   function execute(view, code) {
-    if (!view || !code) return;
-    try { Promise.resolve(view.webview.executeScript({ code })).catch(() => {}); } catch { /* not ready */ }
+    if (!view || !code) return Promise.resolve();
+    try { return Promise.resolve(view.webview.executeScript({ code })).catch(() => {}); } catch { return Promise.resolve(); }
   }
 
-  function applySessionTo(appId, webview, current) {
-    execute({ webview }, sessionScript(appId, current));
+  async function applySessionTo(appId, view, current) {
+    await execute(view, sessionScript(appId, current));
   }
 
-  function applySessionEverywhere() {
-    views.forEach((view, appId) => execute(view, sessionScript(appId, session)));
+  async function applySessionEverywhere() {
+    for (const [appId, view] of views) {
+      await execute(view, sessionScript(appId, session));
+      if (view.loaded) {
+        view.seeded = true;
+        view.webview.reload();
+      }
+    }
   }
 
-  function clearSessionEverywhere() {
-    views.forEach((view, appId) => execute(view, clearScript(appId)));
+  async function clearSessionEverywhere() {
+    for (const [appId, view] of views) {
+      view.seeded = false;
+      await execute(view, clearScript(appId));
+      if (view.loaded) view.webview.reload();
+    }
   }
 
   async function post(url, body, token) {
@@ -270,7 +292,7 @@
     session = { endpoint, user: base.user, profile: base.profile, profiles: base.profiles || [], tokens, at: Date.now() };
     writeJSON(SESSION_KEY, session);
     updatePill();
-    applySessionEverywhere();
+    await applySessionEverywhere();
     $('auth-dialog').close();
     submit.disabled = false;
     submit.textContent = 'Connect';
@@ -278,10 +300,10 @@
     toast(`Connected as ${base.user?.email || email}. Tokens shared with all apps.`);
   }
 
-  function signOut() {
+  async function signOut() {
     session = null;
     localStorage.removeItem(SESSION_KEY);
-    clearSessionEverywhere();
+    await clearSessionEverywhere();
     updatePill();
     toast('Atlas Sync disconnected on this device.');
   }
@@ -293,6 +315,7 @@
       $('auth-error').hidden = true;
       $('auth-dialog').showModal();
     });
+    $('disconnect-btn')?.addEventListener('click', () => signOut());
     $('data-btn')?.addEventListener('click', async () => {
       if (typeof bridge.openDataFolder === 'function') {
         await bridge.openDataFolder();
