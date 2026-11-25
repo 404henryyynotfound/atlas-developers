@@ -44,18 +44,20 @@ jobs:
           SNAP="${{ steps.build.outputs.snap }}"
           (cd "$(dirname "$SNAP")" && sha256sum "$(basename "$SNAP")" > "$(basename "$SNAP").sha256")
 
-      - name: Add snap to Suite release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: suite-v${{ steps.version.outputs.version }}
-          files: |
-            ${{ steps.build.outputs.snap }}
-            ${{ steps.build.outputs.snap }}.sha256
-          fail_on_unmatched_files: true
-
       - name: Publish to Snap Store
         if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
         shell: bash
         run: |
           snapcraft register atlas-suite || true
           snapcraft upload --release=latest/stable "${{ steps.build.outputs.snap }}"
+
+      - name: Add snap to Suite release
+        uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: suite-v${{ steps.version.outputs.version }}
+          files: |
+            ${{ steps.build.outputs.snap }}
+            ${{ steps.build.outputs.snap }}.sha256
+          fail_on_unmatched_files: true
+          overwrite_files: true
