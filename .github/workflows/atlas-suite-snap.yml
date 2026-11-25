@@ -1,0 +1,61 @@
+name: Publish Atlas Suite Snap
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snap:
+    name: Snap ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./atlas-suite/package.json').version")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          sed -i "s/^version: .*/version: '$VERSION'/" atlas-suite/snapcraft.yaml
+
+      - name: Build snap
+        id: build
+        uses: snapcore/action-build@v1
+        with:
+          path: atlas-suite
+
+      - name: Create checksum
+        shell: bash
+        run: |
+          SNAP="${{ steps.build.outputs.snap }}"
+          (cd "$(dirname "$SNAP")" && sha256sum "$(basename "$SNAP")" > "$(basename "$SNAP").sha256")
+
+      - name: Add snap to Suite release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: suite-v${{ steps.version.outputs.version }}
+          files: |
+            ${{ steps.build.outputs.snap }}
+            ${{ steps.build.outputs.snap }}.sha256
+          fail_on_unmatched_files: true
+
+      - name: Publish to Snap Store
+        if: env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        shell: bash
+        run: |
+          snapcraft register atlas-suite || true
+          snapcraft upload --release=latest/stable "${{ steps.build.outputs.snap }}"
