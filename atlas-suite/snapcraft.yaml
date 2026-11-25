@@ -67,7 +67,7 @@ parts:
         *) echo "Unsupported target architecture: $CRAFT_TARGET_ARCH" >&2; exit 1 ;;
       esac
       asset="atlas-suite-linux-${asset_arch}.tar.gz"
-      base="https://github.com/404henryyynotfound/atlas-developers/releases/download/atlas-suite-v${version}"
+      base="https://github.com/404henryyynotfound/atlas-developers/releases/download/suite-v${version}"
       curl -fsSL "${base}/${asset}" -o "${CRAFT_PART_BUILD}/${asset}"
       curl -fsSL "${base}/${asset}.sha256" -o "${CRAFT_PART_BUILD}/${asset}.sha256"
       (cd "$CRAFT_PART_BUILD" && sha256sum -c "${asset}.sha256")
